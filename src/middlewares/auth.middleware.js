@@ -1,9 +1,21 @@
-exports.isAdmin = (req, res, next) => {
-  const isAdmin = true;
+const jwt = require("jsonwebtoken");
 
-  if (!isAdmin) {
+exports.protect = (req, res, next) => {
+  const token = req.headers["authorization"]?.split(" ")[1]; // Bearer TOKEN
+  if (!token) return res.status(401).json({ message: "Not authorized" });
+
+  try {
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    req.user = decoded;
+    next();
+  } catch (err) {
+    return res.status(401).json({ message: "Invalid token" });
+  }
+};
+
+exports.isAdmin = (req, res, next) => {
+  if (!req.user || req.user.role !== "admin") {
     return res.status(403).json({ message: "Admin only" });
   }
-
   next();
 };

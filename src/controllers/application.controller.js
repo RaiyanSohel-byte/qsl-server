@@ -1,10 +1,24 @@
-const applicationService = require("../services/application.service");
+const Application = require("../models/application.model");
 
-exports.createApplication = async (req, res, next) => {
+exports.createApplication = async (req, res) => {
   try {
-    const application = await applicationService.createApplication(req.body);
-    res.status(201).json(application);
+    const { job_id, name, email, resume_link, cover_note } = req.body;
+
+    const application = await Application.create({
+      job_id,
+      name,
+      email,
+      resume_link,
+      cover_note,
+      user: req.user.id,
+      created_at: new Date(),
+    });
+
+    res.status(201).json({
+      message: "Application submitted successfully",
+      application,
+    });
   } catch (err) {
-    next(err);
+    res.status(500).json({ message: err.message });
   }
 };
